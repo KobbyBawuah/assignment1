@@ -1,3 +1,4 @@
+%Question 3
 close all;
 clc
 %Kwabena Gyasi Bawuah
@@ -42,155 +43,8 @@ clc
     traj=zeros(sims,ecount*2);
     temp=zeros(sims, 1);
     
-    %to bring in the robotics system toolbox in order to use state 
-    %declare initial state
-    for i = 1: dpoints
-        angle = rand*2*3.14;
-        state(i,:)= [ConductorL*rand ConductorW*rand vth*cos(angle) vth*sin(angle)];
-    end
-    %initial array of temp
     temp(:,1)= 300;
-    %to iterate over 1000 time steps for plot points
-    for i = 1 :sims
-    state(:,1:2)=state(:,1:2)+detaT.*state(:,3:4);
-    %specifying the particles reactions at boundary
-    out = state(:,1)> ConductorL;
-    state(out,1) = state(out,1)-ConductorL;
     
-    out = state(:,2) < 0;
-    state(out,2) = -state(out,2);
-    state(out,4) = -state(out,4);
-    
-    out = state(:,2)> ConductorW;
-    state(out,2)= 2 * ConductorW - state(out,2);
-    state(out,4)= -state(out,4);
-    
-    out = state(:,1)< 0;
-    state(out,1)=state(out,1)+ ConductorL;
-    
-    %iterating over array of visible electrons
-    for out = 1:ecount 
-        traj(i, (2 * out):(2 * out + 1)) = state(out, 1 : 2);
-    end
-    
-    %plot on every 5 iteration steps
-     if mod(i,5)==0
-        figure (1)
-        subplot(2,1,1);
-        plot(state(1:ecount,1)./1e-9,state(1:ecount,2)./1e-9,'o')
-        xlim([0 ConductorL/1e-9])
-        ylim([0 ConductorW/1e-9])
-        xlabel('Electrons x position (nm)')
-        ylabel('Electrons y position (nm)')
-        title('Simulation of 15 Electrons with constant velocity')
-        
-        subplot(2,1,2);
-        plot(detaT*(0:i-1),temp(1:i));
-        xlim([0 detaT*sims])
-        ylim([min(temp)*0.98 max(temp)*1.02]);
-        xlabel('time(s)');
-        ylabel('Temperature (K)');
-        title('Temperature of semiconductor over time');
-     end
-    end
-    
-    %iterate over the visible particles and show thier
-    %paths
-    figure(2)
-    hold on;
-    xlim([0 ConductorL/1e-9]);
-    ylim([0 ConductorW/1e-9]);
-    xlabel('Electrons x position (nm)');
-    ylabel('Electrons y position (nm)');
-    title('Trajectories of the 15 Electrons within the conductor');
-    for i = 1: ecount
-    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, '-');
-    end
-    
-    %------------------------------------
-    %Collisions with Mean Free Path
-    Pscat = 1-exp(-detaT/tmn);
-    %to make a probability distribution with mu=0 and sigma=vth
-    ProbDistr = makedist('Normal','mu', 0, 'sigma', sqrt(C.kb*T/mn));
-    for i = 1: dpoints
-        state(i,:)= [ConductorL*rand ConductorW*rand random(ProbDistr) random(ProbDistr)];
-    end
-   
-    %from part 1
-    for i = 1 :sims
-    state(:,1:2)=state(:,1:2)+detaT.*state(:,3:4);
-    %specifying the particles reactions at boundary
-    out = state(:,1)> ConductorL;
-    state(out,1) = state(out,1)-ConductorL;
-    
-    out = state(:,2) < 0;
-    state(out,2) = -state(out,2);
-    state(out,4) = -state(out,4);
-    
-    out = state(:,2)> ConductorW;
-    state(out,2)= 2 * ConductorW - state(out,2);
-    state(out,4)= -state(out,4);
-    
-    out = state(:,1)< 0;
-    state(out,1)=state(out,1)+ ConductorL;
-    
-    out = rand(ecount,1) < Pscat;
-    state(out,3:4)=random(ProbDistr,[sum(out),2]);
-    
-    %varying temp 
-    temp(i)=(sum(state(:,3).^2) + sum(state(:,4).^2)).*mn/k/2/dpoints;
-    %iterating over array of visible electrons
-    for out = 1:ecount 
-        traj(i, (2 * out):(2 * out + 1)) = state(out, 1:2);
-    end
-    %plot on every 5 iteration steps
-    if mod(i,5)==0
-        figure(3);
-        subplot(3,1,1);
-        part = sqrt(state(:,3).^2 + state(:,4).^2);
-        xlim([0 7e5]);
-        ylim([0 2000]);
-        histogram(part);
-        xlabel('v(m/s)');
-        ylabel('Particle count');
-        title('Histogram to show particle speed');
-        
-        subplot(3,1,2);
-        plot(state(1:ecount,1)./1e-9,state(1:ecount,2)./1e-9,'o')
-        xlim([0 ConductorL/1e-9])
-        ylim([0 ConductorW/1e-9])
-        xlabel('Electrons x position (nm)')
-        ylabel('Electrons y position (nm)')
-        title('Electrons with collision and Mean Free Path')
-        
-        subplot(3,1,3);
-        plot(detaT*(0:i-1),temp(1:i));
-        xlabel('time(s)');
-        ylabel('Temperature (K)');
-        title('Temperature of semiconductor over time');
-        
-     end
-    end
-    
-    %iterate over the visible particles and show thier
-    %paths
-    figure(4)
-    hold on;
-    xlim([0 ConductorL/1e-9]);
-    ylim([0 ConductorW/1e-9]);
-    xlabel('Electrons x position (nm)');
-    ylabel('Electrons y position (nm)');
-    title('Trajectories of Electrons with after collisions and MFP');
-    for i = 1: ecount
-    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, '-');
-    end
-    
-    Vx=(vth/sqrt(2))*rand(ecount,1);
-    Vy=(vth/sqrt(2))*rand(ecount,1);
-    Vdis=sqrt(Vx.^2+Vy.^2);
-    Vavg = mean(Vdis);
-    MFP = Vavg*tmn;
-
     %----------------------------------------
     tspec = 0;
     bspec=0;
@@ -312,16 +166,18 @@ clc
         if  mod(i,5) == 0
         figure(5);
         subplot(3,1,1);
+        hold off;
         plot(state(1:ecount,1)./1e-9, state(1:ecount,2)./1e-9, 'o');
+        hold on;
+        for ouut=1:size(boxes,1)
+           plot([boxes(ouut, 1) boxes(ouut, 1) boxes(ouut, 2) boxes(ouut, 2) boxes(ouut, 1)]./1e-9,[boxes(ouut, 3) boxes(ouut, 4) boxes(ouut, 4) boxes(ouut, 3) boxes(ouut, 3)]./1e-9, 'k-');
+        end
+     
         xlim([0 ConductorL/1e-9])
         ylim([0 ConductorW/1e-9])
         xlabel('Electrons x position (nm)')
         ylabel('Electrons y position (nm)')
         title('Electrons through a bottle neck boundary')
-
-        for ouut=1:size(boxes,1)
-           plot([boxes(ouut, 1) boxes(ouut, 1) boxes(ouut, 2) boxes(ouut, 2) boxes(ouut, 1)]./1e-9,[boxes(ouut, 3) boxes(ouut, 4) boxes(ouut, 4) boxes(ouut, 3) boxes(ouut, 3)]./1e-9, 'k-');
-        end
         
         subplot(3,1,2);
         plot(detaT*(0:i-1), temp(1:i));
@@ -382,41 +238,39 @@ clc
     xlabel('Electrons x position (nm)');
     ylabel('Electrons y position (nm)');
 
-tempSumX = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
-tempSumY = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
-tempSum = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
+    tempSumX = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
+    tempSumY = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
+    tempSum = zeros(ceil(ConductorL/1e-9),ceil(ConductorW/1e-9));
 
-for i=1:dpoints
-   
-    x = floor(state(i,1)/1e-9);
-    y = floor(state(i,2)/1e-9);
-    if(x==0)
-        x = 1;
+    for i=1:dpoints
+
+        x = floor(state(i,1)/1e-9);
+        y = floor(state(i,2)/1e-9);
+        if(x==0)
+            x = 1;
+        end
+        if(y==0)
+            y= 1;
+        end
+
+        tempSumY(x,y) = tempSumY(x,y) + state(i,3)^2;
+        tempSumX(x,y) = tempSumX(x,y) + state(i,4)^2;
+        tempSum(x,y) = tempSum(x,y) + 1;
     end
-    if(y==0)
-        y= 1;
-    end
-  
-    tempSumY(x,y) = tempSumY(x,y) + state(i,3)^2;
-    tempSumX(x,y) = tempSumX(x,y) + state(i,4)^2;
-    tempSum(x,y) = tempSum(x,y) + 1;
-end
 
-temp = (tempSumX + tempSumY).*mn./k./2./tempSum;
-temp(isnan(temp)) = 0;
-temp = temp';
+    temp = (tempSumX + tempSumY).*mn./k./2./tempSum;
+    temp(isnan(temp)) = 0;
+    temp = temp';
 
-N = 20;
-sigma = 3;
-[x y]=meshgrid(round(-N/2):round(N/2), round(-N/2):round(N/2));
-f=exp(-x.^2/(2*sigma^2)-y.^2/(2*sigma^2));
-f=f./sum(f(:));
-figure(8);
-imagesc(conv2(temp,f,'same'));
-set(gca,'YDir','normal');
-title('Map of temperature');
-xlabel('Electrons x position (nm)');
-ylabel('Electrons y position (nm)');
-
-
-  
+    N = 20;
+    sigma = 3;
+    [x y]=meshgrid(round(-N/2):round(N/2), round(-N/2):round(N/2));
+    f=exp(-x.^2/(2*sigma^2)-y.^2/(2*sigma^2));
+    f=f./sum(f(:));
+    figure(9);
+    imagesc(conv2(temp,f,'same'));
+    set(gca,'YDir','normal');
+    title('Map of temperature');
+    xlabel('Electrons x position (nm)');
+    ylabel('Electrons y position (nm)');
+    
