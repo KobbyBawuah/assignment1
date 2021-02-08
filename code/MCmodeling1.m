@@ -107,9 +107,3 @@ clc
     for i = 1: ecount
     plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, '-');
     end
-    
-    
-    
-
-
-  

@@ -44,8 +44,10 @@ clc
     temp=zeros(sims, 1);
     
     temp(:,1)= 300;
-    
+    Pscat = 1-exp(-detaT/tmn);
     %----------------------------------------
+    ProbDistr = makedist('Normal','mu', 0, 'sigma', sqrt(C.kb*T/mn));
+    
     tspec = 0;
     bspec=0;
     boxes = 1e-9.*[80 120 0 40; 80 120 60 100];
@@ -160,7 +162,7 @@ clc
     
 
         for out=1:ecount
-            traj(i, (2*out):(2*out+1)) = state(out, 1:2);
+            traj(i, (2*out):(2*out+1)) = state(out,1:2);
         end 
         
         if  mod(i,5) == 0
